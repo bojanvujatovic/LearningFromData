@@ -1,12 +1,19 @@
 % Generating constants and data set X
-N_experiments = 100;
-N = 1000;
-d = 10;
-X = [ones(N, 1), rand(N, d) * 2 - 1];
+N_experiments = 10000;
+N = 100;
+d = 2;
+
+lower_bound = -ones(1, d);
+upper_bound =  ones(1, d);
+
+X = [ones(N, 1), rand(N, d) .* repmat(upper_bound - lower_bound, N, 1) + repmat(lower_bound, N, 1)];
+
+plotting_data = 0;
+plotting_results = 0;
 
 %%% Picking random target function (hyperplane)
 %   Generating matrix for hyperplane calculation
-matrix = [ones(d, 1), rand(d, d) * 2 - 1];
+matrix = [ones(d, 1), rand(d, d) .* repmat(upper_bound - lower_bound, d, 1) + repmat(lower_bound, d, 1)];
 
 %   Calculation each dimension of wtarged by 
 %   Laplacian expansion
@@ -20,14 +27,14 @@ end
 % Generate y
 y = sign(X * w_target);
 
-if d == 2
-    % % Plot f boudary
-    % hold;
-    % pr1_4_plotline(w_target, 2);
+% Plot f boudary and points
+if d == 2 && plotting_data == 1
+    hold;
+    pr1_4_plotline(w_target, 2);
     
-    % % Plot points
-    % plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
-    % plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
+    % Plot points
+    plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
+    plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
 end
 
 % Run PLA
@@ -51,16 +58,14 @@ for n = 1:N_experiments
         [X_mis y_mis]= pr1_4_misclassified(X, y, w);
     end;
 
-    % num_iterations(n)
-
-    if d == 2
-        % % Ploting w_target, final w and points
-        % figure; hold;
-        % axis([-1,1,-1,1])
-        % pr1_4_plotline(w_target, 1);
-        % pr1_4_plotline(w, 2);
-        % plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
-        % plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
+    % Ploting w_target, final w and points
+    if d == 2 && plotting_results == 1
+        figure; hold;
+        axis([lower_bound(1),upper_bound(1),lower_bound(2),upper_bound(2)])
+        pr1_4_plotline(w_target, 1);
+        pr1_4_plotline(w, 2);
+        plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
+        plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
     end
 end
 

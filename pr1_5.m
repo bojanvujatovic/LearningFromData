@@ -1,17 +1,22 @@
 % Generating constants and data set X
 N_train = 100;
-N_test = 10000;
+N_test = 1000;
 d = 2;
 max_iterations = 1000;
 
 etas = [100 1 0.01 0.0001];
 
-X_train = [ones(N_train, 1), rand(N_train, d) * 2 - 1];
-X_test  = [ones(N_test , 1), rand(N_test,  d) * 2 - 1];
+lower_bound = -ones(1, d);
+upper_bound =  ones(1, d);
+
+X_train = [ones(N_train, 1), rand(N_train, d) .* repmat(upper_bound - lower_bound, N_train, 1) + repmat(lower_bound, N_train, 1)];
+X_test  = [ones(N_test , 1), rand(N_test , d) .* repmat(upper_bound - lower_bound, N_test , 1) + repmat(lower_bound, N_test , 1)];
+
+plotting_results = 0;
 
 %%% Picking random target function (hyperplane)
 %   Generating matrix for hyperplane calculation
-matrix = [ones(d, 1), rand(d, d) * 2 - 1];
+matrix = [ones(d, 1), rand(d, d) .* repmat(upper_bound - lower_bound, d, 1) + repmat(lower_bound, d, 1)];
 
 %   Calculation each dimension of wtarged by 
 %   Laplacian expansion
@@ -24,7 +29,7 @@ end
 
 % Generate ys
 y_train = sign(X_train * w_target);
-y_test = sign(X_test * w_target);
+y_test  = sign(X_test * w_target);
 
 % Run PLA
 for eta = etas
@@ -45,18 +50,19 @@ for eta = etas
 
         [X_mis y_mis]= pr1_5_AdalineMisclassified(X_train, y_train, w);
     end;
-
-    if d == 2
-        % Ploting w_target, final w and points
+    
+    % Ploting w_target, final w and points
+    if d == 2 && plotting_results == 1
         figure; hold;
-        axis([-1,1,-1,1])
+        axis([lower_bound(1),upper_bound(1),lower_bound(2),upper_bound(2)])
         pr1_4_plotline(w_target, 1);
         pr1_4_plotline(w, 2);
         plot(X_train(find(y_train == 1), 2)', X_train(find(y_train == 1), 3)', 'rx');
         plot(X_train(find(y_train == -1), 2)', X_train(find(y_train == -1), 3)', 'bo');
     end
     
-    E_test = sum(y_test ~= sign(X_test * w)) / N_test
+    E_test = sum(y_test ~= sign(X_test * w)) / N_test;
+    fprintf('For eta = %f, E_test = %f\n', eta, E_test);
 end
 
 % Exiting
