@@ -1,4 +1,4 @@
-function pred = ex110_pred(epsilon, nus, mu)
+function pred = ex1_10_pred(epsilon, nus, mu)
 
 Ntrials = length(nus);
 pred = zeros(size(epsilon));
