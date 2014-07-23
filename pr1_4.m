@@ -1,7 +1,7 @@
 % Generating constants and data set X
-N_experiments = 10000;
-N = 100;
-d = 2;
+N_experiments = 100;
+N = 1000;
+d = 10;
 
 lower_bound = -ones(1, d);
 upper_bound =  ones(1, d);
@@ -25,7 +25,7 @@ for i = 1:(d + 1)
 end
 
 % Generate y
-y = sign(X * w_target);
+y = pr1_4_targetFunction(X, w_target);
 
 % Plot f boudary and points
 if d == 2 && plotting_data == 1
@@ -43,19 +43,13 @@ num_iterations = zeros(N_experiments, 1);
 for n = 1:N_experiments
     
     w = zeros(d + 1, 1);
-    [X_mis, y_mis] = pr1_4_misclassified(X, y, w);
+    [x_mis, y_mis] = pr1_4_pickMisclassified(X, y, w);
 
-    while(size(X_mis, 1) > 0)
-
+    while(size(x_mis, 1) > 0)
         num_iterations(n) = num_iterations(n) + 1;
-        rand_row = ceil((1 - rand(1, 1)) * size(X_mis, 1));
+        w = w + y_mis * x_mis;
 
-        rand_x = X_mis(rand_row,:);
-        rand_y = y_mis(rand_row);
-
-        w = w + rand_y * rand_x';
-
-        [X_mis y_mis]= pr1_4_misclassified(X, y, w);
+        [x_mis, y_mis] = pr1_4_pickMisclassified(X, y, w);
     end;
 
     % Ploting w_target, final w and points

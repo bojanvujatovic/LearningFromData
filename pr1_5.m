@@ -28,8 +28,8 @@ for i = 1:(d + 1)
 end
 
 % Generate ys
-y_train = sign(X_train * w_target);
-y_test  = sign(X_test * w_target);
+y_train = pr1_4_targetFunction(X_train, w_target);
+y_test  = pr1_4_targetFunction(X_test , w_target);
 
 % Run PLA
 for eta = etas
@@ -61,7 +61,8 @@ for eta = etas
         plot(X_train(find(y_train == -1), 2)', X_train(find(y_train == -1), 3)', 'bo');
     end
     
-    E_test = sum(y_test ~= sign(X_test * w)) / N_test;
+    E_test = pr1_5_classificationError(X_test, y_test, w);
+    
     fprintf('For eta = %f, E_test = %f\n', eta, E_test);
 end
 

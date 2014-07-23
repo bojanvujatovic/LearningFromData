@@ -1,98 +1,80 @@
 %%% Defining constants
-d     = 2;
-N     = 100;
-Ntest = 1000;
-pflip = 0.1;
+d        = 2;
+N_train  = 100;
+N_test   = 1000;
+p_revert = 0.1;
 
-Ntrials = 20;
-T       = 1000;
+N_trials = 20;
+T        = 1000;
 
-Eint     = zeros(T, 1);
-Einmint  = zeros(T, 1);
+E_in_t     = zeros(T, 1);
+E_in_min_t  = zeros(T, 1);
 
-Eoutt    = zeros(T, 1);
-Eoutmint = zeros(T, 1);
+E_out_t     = zeros(T, 1);
+E_out_min_t = zeros(T, 1);
 
-xlow = -1;
-xupp =  1;
-ylow = -1;
-yupp =  1;
+lower_bound = -ones(1, d);
+upper_bound = +ones(1, d);
 
 %%% Generate dataset
-% X
-X     = [ones(N    , 1), rand(N    , 2)*(xupp - xlow) + xlow];
-Xtest = [ones(Ntest, 1), rand(Ntest, 2)*(xupp - xlow) + xlow];
 
-% Line
-xA = rand(1, 1)*(xupp - xlow) + xlow;
-yA = rand(1, 1)*(xupp - xlow) + xlow;
-xB = rand(1, 1)*(xupp - xlow) + xlow;
-yB = rand(1, 1)*(xupp - xlow) + xlow;
-k = (yB - yA)/(xB - xA);
+X_train = [ones(N_train, 1), rand(N_train, d) .* repmat(upper_bound - lower_bound, N_train, 1) + repmat(lower_bound, N_train, 1)];
+X_test  = [ones(N_test , 1), rand(N_test , d) .* repmat(upper_bound - lower_bound, N_test , 1) + repmat(lower_bound, N_test , 1)];
 
-wtarget = [k*xA - yA; -k; 1];
+% Picking random target function (hyperplane)
+% Generating matrix for hyperplane calculation
+matrix = [ones(d, 1), rand(d, d) .* repmat(upper_bound - lower_bound, d, 1) + repmat(lower_bound, d, 1)];
 
-% Labels
-y     = ex3_2_predict(X    , wtarget);
-ytest = ex3_2_predict(Xtest, wtarget);
+% Calculation each dimension of wtarged by 
+% Laplacian expansion
+w_target = zeros(d + 1, 1);
+for i = 1:(d + 1)
+    matrix_i = matrix;
+    matrix_i(:, i) = [];
+    w_target(i) = (-1)^(1 + i) * det(matrix_i);
+end
 
-ypermidx = randperm(N);
-ypermidx = ypermidx(1:ceil(pflip * N));
-ytestpermidx = randperm(Ntest);
-ytestpermidx = ytestpermidx(1:ceil(pflip * Ntest));
+% Labels - generating and reverting for data set
+y_train = pr1_4_targetFunction(X_train, w_target);
+y_test  = pr1_4_targetFunction(X_test,  w_target);
 
-y    (ypermidx)     = y    (ypermidx)     * (-1);
-ytest(ytestpermidx) = ytest(ytestpermidx) * (-1);
+y_revert_idx = randsample(N, ceil(p_revert * N));
+y_train(y_revert_idx) = (-1) * y_train(y_revert_idx);
 
 %%% Running Pocket algorithm
-for ntrial = 1:Ntrials
+for ntrial = 1:N_trials
 
-    w = zeros(3, 1);
-    wmin = w;
-    Einmin = 1.1;
+    w        = zeros(d + 1, 1);
+    w_min    = w;
+    E_in_min = 1;
     
     for t = 1:T
        
-        [xmis, ymis] = ex3_2_pickMisclassified(X, y, w);
-        w = w + ymis * xmis;
+        [x_mis, y_mis] = pr1_4_pickMisclassified(X_train, y_train, w);
+        w = w + y_mis * x_mis;
+        E_in = pr1_5_classificationError(X_train, y_train, w);
         
-        Ein = ex3_2_calcError(X, y, w);
-        if Ein < Einmin
-            Einmin = Ein;
-            wmin   = w; 
+        if E_in < E_in_min
+            E_in_min = E_in;
+            w_min    = w; 
         end
         
-        Eint(t)     = Eint(t) + Ein;
-        Einmint(t)  = Einmint(t) + Einmin;
+        E_in_t(t)      = E_in_t(t)     + 1/N_trials * E_in;
+        E_in_min_t(t)  = E_in_min_t(t) + 1/N_trials * E_in_min;
         
-        Eoutt(t)    = Eoutt(t) + ex3_2_calcError(Xtest, ytest, w);
-        Eoutmint(t) = Eoutmint(t) + ex3_2_calcError(Xtest, ytest, wmin);
+        E_out_t(t)     = E_out_t(t)     + 1/N_trials * pr1_5_classificationError(X_test, y_test, w);
+        E_out_min_t(t) = E_out_min_t(t) + 1/N_trials * pr1_5_classificationError(X_test, y_test, w_min);
         
     end
-    
-    
 end
 
-Eint     = Eint /Ntrials;
-Einmint  = Einmint /Ntrials;
-        
-Eoutt    = Eoutt /Ntrials;
-Eoutmint = Eoutmint /Ntrials;
-
-% figure(2);
-% 
-% plot(1:T, Eint);
-% hold on;
-% plot(1:T, Einmint, 'r-');
-% hold on;
-% plot(1:T, Eoutt, 'g-');
-% hold on;
-% plot(1:T, Eoutmint, 'y-');
-
+% Plotting results
 figure;
-ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
+plot(1:T, E_in_t);
 hold on;
-ex3_2_plotLine(wtarget, 1, xlow, xupp);
+plot(1:T, E_in_min_t, 'r-');
+plot(1:T, E_out_t, 'g-');
+plot(1:T, E_out_min_t, 'y-');
 
 %%% Ending
 fprintf('Press any key to exit...\n');
