@@ -1,14 +1,15 @@
-function pr1_4_plotline(w, rev)
+function pr1_4_plotLine(w, c, xlow, xupp)
 
-if (rev == 1)
-    plot([-1, 1], [-(w(1) - w(2))/w(3), -(w(1) + w(2))/w(3)], 'r-');
-elseif (rev == 2)
-    plot([-1, 1], [-(w(1) - w(2))/w(3), -(w(1) + w(2))/w(3)], '-');
-else 
-    plot([-1, 1], [-(w(1) - w(2))/w(3), -(w(1) + w(2))/w(3)], 'g-');
+X = [1, xlow;
+     1, xupp ];
+
+y = - X * w(1:2) / w(3);
+
+if(c == 1)
+    plot(X(:, 2), y, 'r-');
+elseif(c == 2)
+    plot(X(:, 2), y, 'b-');
+else
+    plot(X(:, 2), y, 'g-');
+
 end
-
-end
-
-
-

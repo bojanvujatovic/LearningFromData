@@ -25,7 +25,7 @@ while counter <= 2000
    
     x1 = rand(1, 1)*(xupp - xlow) + xlow;
     x2 = rand(1, 1)*(yupp - ylow) + ylow;
-    label = pr3_1_target(x1, x2, rad, thk, sep);
+    label = pr3_1_targetFunction(x1, x2, rad, thk, sep);
     
     if label ~= 0
         X(counter, 2:3) = [x1, x2];

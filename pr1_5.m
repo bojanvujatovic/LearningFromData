@@ -55,8 +55,8 @@ for eta = etas
     if d == 2 && plotting_results == 1
         figure; hold;
         axis([lower_bound(1),upper_bound(1),lower_bound(2),upper_bound(2)])
-        pr1_4_plotline(w_target, 1);
-        pr1_4_plotline(w, 2);
+        pr1_4_plotline(w_target, 1, lower_bound(1),upper_bound(1));
+        pr1_4_plotline(w, 2, lower_bound(1),upper_bound(1));
         plot(X_train(find(y_train == 1), 2)', X_train(find(y_train == 1), 3)', 'rx');
         plot(X_train(find(y_train == -1), 2)', X_train(find(y_train == -1), 3)', 'bo');
     end

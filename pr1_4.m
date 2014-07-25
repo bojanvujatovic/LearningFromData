@@ -30,7 +30,7 @@ y = pr1_4_targetFunction(X, w_target);
 % Plot f boudary and points
 if d == 2 && plotting_data == 1
     hold;
-    pr1_4_plotline(w_target, 2);
+    pr1_4_plotline(w_target, 2, lower_bound(1), upper_bound(1));
     
     % Plot points
     plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
@@ -55,9 +55,9 @@ for n = 1:N_experiments
     % Ploting w_target, final w and points
     if d == 2 && plotting_results == 1
         figure; hold;
-        axis([lower_bound(1),upper_bound(1),lower_bound(2),upper_bound(2)])
-        pr1_4_plotline(w_target, 1);
-        pr1_4_plotline(w, 2);
+        axis([lower_bound(1),upper_bound(1),lower_bound(2), upper_bound(2)])
+        pr1_4_plotline(w_target, 1, lower_bound(1), upper_bound(1));
+        pr1_4_plotline(w, 2, lower_bound(1), upper_bound(1));
         plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
         plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
     end

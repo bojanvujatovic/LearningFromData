@@ -1,6 +1,5 @@
 %%% Defining constants
-d     = 2;
-N     = 2000;
+N   = 2000;
 
 rad = 10;
 thk = 5;
@@ -17,61 +16,45 @@ X =  ones(N, 3);
 y = zeros(N, 1);
 
 counter = 1;
-while counter <= 2000
-   
+while counter <= N
     x1 = rand(1, 1)*(xupp - xlow) + xlow;
     x2 = rand(1, 1)*(yupp - ylow) + ylow;
-    label = pr3_1_target(x1, x2, rad, thk, sep);
+    label = pr3_1_targetFunction(x1, x2, rad, thk, sep);
     
     if label ~= 0
         X(counter, 2:3) = [x1, x2];
         y(counter)      = label;
         counter = counter + 1;
     end
-    
 end
 
 %%% Running PLA
-w = zeros(3, 1);
+w_perceptron = zeros(3, 1);
 Ein = 1;
-t = 0;
+[xmis, ymis] = pr1_4_pickMisclassified(X, y, w_perceptron);
 
-while Ein > 0
+while length(ymis) > 0
+    w_perceptron = w_perceptron + ymis * xmis;
     
-%     ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
-%     hold on;
-%     ex3_2_plotLine(w, 1, xlow, xupp);
-    
-    [xmis, ymis] = ex3_2_pickMisclassified(X, y, w);
-    w = w + ymis * xmis;
-    
-%     plot(xmis(2), xmis(3),'--rs', 'MarkerEdgeColor','k','MarkerFaceColor','g','MarkerSize', 20);
-%     hold off;
-%     pause;
-%     ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
-%     hold on;
-%     ex3_2_plotLine(w, 1, xlow, xupp);
-%     hold off;
-    
-    Ein = ex3_2_calcError(X, y, w);
-    t = t + 1;
+    [xmis, ymis] = pr1_4_pickMisclassified(X, y, w_perceptron);
 end
 
-figure(1);
-ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
+%%% Plotting PLA results
+figure;
+pr1_4_plotLine(w_perceptron, 1, xlow, xupp);
 hold on;
-ex3_2_plotLine(w, 1, xlow, xupp);
-hold off;
+plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
+plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
 
-%%% Running Linear Regression
-wlin = pinv(X) * y;
-figure(2);
-ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
+%%% Running Linear Regression and plotting
+w_lin = pinv(X) * y;
+
+figure;
+pr1_4_plotLine(w_lin, 1, xlow, xupp);
 hold on;
-ex3_2_plotLine(wlin, 1, xlow, xupp);
-hold off;
+plot(X(find(y == 1), 2)', X(find(y == 1), 3)', 'rx');
+plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
     
-
 %%% Ending
 fprintf('Press any key to exit...\n');
 pause;
