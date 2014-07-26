@@ -1,6 +1,6 @@
 %%% Defining constants
-d     = 2;
-N     = 2000;
+N            = 2000;
+N_iterations = 1000000;
 
 rad = 10;
 thk = 5;
@@ -11,9 +11,8 @@ xupp = 2*rad + 3/2*thk;
 ylow = -sep-rad-thk;
 yupp = rad+thk;
 
-% Initialization
-t_vals = 1:1000000;
-Einmin_vals = zeros(size(t_vals));
+redBackgroundColor =  [255, 148, 148]/255;
+blueBackgroundColor = [113, 139, 222]/255;
 
 %%% Generate dataset
 % X and labels
@@ -21,8 +20,7 @@ X =  ones(N, 3);
 y = zeros(N, 1);
 
 counter = 1;
-while counter <= 2000
-   
+while counter <= N
     x1 = rand(1, 1)*(xupp - xlow) + xlow;
     x2 = rand(1, 1)*(yupp - ylow) + ylow;
     label = pr3_1_targetFunction(x1, x2, rad, thk, sep);
@@ -32,111 +30,110 @@ while counter <= 2000
         y(counter)      = label;
         counter = counter + 1;
     end
-    
 end
 
-% %%% Part a-d
-% % Running Pocket Algorithm
+% %%% Running pocket algorithm - no transformation
 % w = zeros(3, 1);
-% wmin = w;
-% Einmin = 1;
-% t = 1;
+% w_min = w;
+% E_in_min = 1;
+% E_in_min_vals = zeros(size(1, N_iterations));
 % 
-% while t <= 1000000
+% msg = '';
+% for t = 1:N_iterations
 %     
-% %     ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
-% %     hold on;
-% %     ex3_2_plotLine(w, 1, xlow, xupp);
+%     if mod(t, N_iterations/500) == 0
+%         fprintf(repmat('\b', 1, numel(msg)));
+%         msg = sprintf('Pocket algorithm - no transformation... Done: %.2f%%\n', t/N_iterations*100);
+%         fprintf('Pocket algorithm - no transformation... Done: %.2f%%\n', t/N_iterations*100);
+%     end
 %     
-%     [xmis, ymis] = ex3_2_pickMisclassified(X, y, w);
+%     [xmis, ymis] = pr1_4_pickMisclassified(X, y, w);
 %     w = w + ymis * xmis;
 %     
-%     
-%     
-% %     plot(xmis(2), xmis(3),'--rs', 'MarkerEdgeColor','k','MarkerFaceColor','g','MarkerSize', 20);
-% %     hold off;
-% %     pause;
-% %     ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
-% %     hold on;
-% %     ex3_2_plotLine(w, 1, xlow, xupp);
-% %     hold off;
-%     
-%     Ein = ex3_2_calcError(X, y, w);
-%     if Ein < Einmin
-%         Einmin = Ein;
-%         wmin = w;
+%     E_in = pr1_5_classificationError(X, y, w);
+%     if E_in < E_in_min
+%         E_in_min = E_in;
+%         w_min = w;
 %     end
 %     
-%     Einmin_vals(t) = Einmin;
-%     
-%     if mod(t, 50000) == 0
-%         t
-%     end
-%     
-%     t = t + 1;
+%     E_in_min_vals(t) = E_in_min;
 % end
 % 
 % %%% Plotting
 % % Ein vs time
-% figure(1);
-% plot(t_vals, Einmin_vals);
+% figure;
+% plot(1:N_iterations, E_in_min_vals);
 % 
 % % Dataset and final hypothesis
-% figure(2);
-% ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
+% figure;
+% pr1_4_plotLine(w_min, 1, xlow, xupp);
 % hold on;
-% ex3_2_plotLine(wmin, 1, xlow, xupp);
+% plot(X(find(y ==  1), 2)', X(find(y ==  1), 3)', 'rx');
+% plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'bo');
 % 
-% % Running Linear regression
-% wlin = pinv(X) * y;
-% ex3_2_plotLine(wlin, 1, xlow, xupp);
+% %%% Running Linear regression and plotting
+% fprintf('\nLinear regression - no transformation... ');
+% w_lin = pinv(X) * y;
+% fprintf('Done!\n');
+% pr1_4_plotLine(w_lin, 2, xlow, xupp);
+% 
+% %%% Performance comparison - on E_in - same d_VC, so E_out should follow
+% %   E_out also possible to calculate but not implemented here
+% fprintf('E_in(w_pocket) = %.4f\n', pr1_5_classificationError(X, y, w_min));
+% fprintf('E_in(w_lin)    = %.4f\n', pr1_5_classificationError(X, y, w_lin));
 
-%%% Part e
-X = pr3_3_3rdPolyTransform(X);
-dtilda = 9;
-t_vals = 1:1000000;
-Einmin_vals = zeros(size(t_vals));
+%%% Running pocket algorithm - 3rd poly transformation
+Q = 3;
+[Z, d_tilda] = pr3_3_polyTransform(X, Q);
 
-% Running Pocket Algorithm
-w = zeros(dtilda + 1, 1);
-wmin = w;
-Einmin = 1;
-t = 1;
+w = zeros(d_tilda + 1, 1);
+w_min = w;
+E_in_min = 1;
+E_in_min_vals = zeros(size(1, N_iterations));
 
-while t <= 1000000
+[zmis, ymis] = pr1_4_pickMisclassified(Z, y, w);
+
+msg = '';
+for t = 1:N_iterations
     
-    [xmis, ymis] = ex3_2_pickMisclassified(X, y, w);
-    w = w + ymis * xmis;
-    
-    Ein = ex3_2_calcError(X, y, w);
-    if Ein < Einmin
-        Einmin = Ein;
-        wmin = w;
+    if mod(t, N_iterations/500) == 0
+        fprintf(repmat('\b', 1, numel(msg)));
+        msg = sprintf('Pocket algorithm - 3rd poly transformation... Done: %.2f%%', t/N_iterations*100);
+        fprintf('Pocket algorithm - 3rd poly transformation... Done: %.2f%%', t/N_iterations*100);
     end
     
-    Einmin_vals(t) = Einmin;
+    w = w + ymis * zmis;
     
-    if mod(t, 50000) == 0
-        t
+    E_in = pr1_5_classificationError(Z, y, w);
+    if E_in < E_in_min
+        E_in_min = E_in;
+        w_min = w;
     end
     
-    t = t + 1;
+    E_in_min_vals(t) = E_in_min;
     
-    if Ein == 0
-        break;
+    [zmis, ymis] = pr1_4_pickMisclassified(Z, y, w);
+    if length(ymis) == 0
+        fprintf('\nFound w for which E_in(w) = 0. Plotting...\n');
+        break
     end
 end
 
 %%% Plotting
 % Ein vs time
-figure(3);
-plot(t_vals, Einmin_vals);
+figure;
+plot(1:t, E_in_min_vals);
 
 % Data and bound
-figure(4);
-ex3_2_plotData(X, y, xlow, xupp, ylow, yupp);
-hold on;
-pr3_3_plot3rdPolyTransformBorder(w, xlow, xupp, ylow, yupp)
+figure; hold on;
+[x1_plot, x2_plot] = meshgrid(xlow:0.1:xupp, ylow:0.1:yupp);
+X_plot = [ones(size(x1_plot(:))), x1_plot(:), x2_plot(:)];
+Z_plot = pr3_3_polyTransform(X_plot, Q);
+y_plot = sign(Z_plot * w);
+pr3_3_plotColorRegion(X_plot(find(y_plot == +1), :), blueBackgroundColor);
+pr3_3_plotColorRegion(X_plot(find(y_plot == -1), :), redBackgroundColor);
+plot(X(find(y == -1), 2)', X(find(y == -1), 3)', 'rx');
+plot(X(find(y == +1), 2)', X(find(y == +1), 3)', 'bo');
 
 %%% Ending
 fprintf('Press any key to exit...\n');

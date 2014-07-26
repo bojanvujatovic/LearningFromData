@@ -15,8 +15,8 @@ msg = '';
 for i = 1:N_trials
     
     fprintf(repmat('\b', 1, numel(msg)));
-    msg = sprintf('Done: %.2f%%\n', i/N_trials);
-    fprintf('Done: %.2f%%\n', i/N_trials);
+    msg = sprintf('Done: %.2f%%\n', i/N_trials*100);
+    fprintf('Done: %.2f%%\n', i/N_trials*100);
     
     for j = 1:length(seps)        
         sep = seps(j);
